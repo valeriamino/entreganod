@@ -1,5 +1,7 @@
 'use strict'
 
+require('dotenv').config();
+
 var jwt = require("jsonwebtoken");
 
 const {validationResult } = require('express-validator');
@@ -27,8 +29,8 @@ var controller = {
                     user: usuarios
                 }
 
-                let access_token = jwt.sign(payload, privateKey, {
-                    expiresIn: 'id'
+                let access_token = jwt.sign(payload, process.env.KEY, {
+                    expiresIn: '3d'
 
                 });
 
@@ -38,38 +40,36 @@ var controller = {
                     user: usuarios.email,
                     key: access_token,
                     creationDate: today,
-                    expirationDate: '1d',
+                    expirationDate: '3d',
                     active: true
 
                 }
 
-                Sessions.findOneAndUpdate({ user:usuarios.email}, update_session)
+                Sessions.findOneAndUpdate({ user:usuarios.email}, update_session, {upsert:true, new:true})
                 .then(session => {
                     if (!session) {
                         return res.status(401).send({
                             status: 401,
                             message: "Usuario no encontrado"
                         });
-                        }
+                    }
 
-                        return res.status(200).send({
-                        status: 200,
-                        message: "Usuario actualizado"
-                        });
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        return res.status(500).send({
-                        status: 500,
-                        message: "Error detectado"
-                        });
-                    });
-                
                     return res.status(200).send({
                         status:200,
                         message:"Login correcto",
                         token: access_token
                     });
+
+                })
+                .catch(error => {
+                    console.error(error);
+                    return res.status(500).send({
+                        status: 500,
+                        message: "Error detectado"
+                    });
+                });
+                
+                    
 
             }else{
                 return res.status(401).send({
