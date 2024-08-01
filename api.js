@@ -12,8 +12,9 @@ var AuthController = require("../controllers/auth");
 //login
 api.post('/login', [
     body("email").not().isEmpty(),
-    body("password").not().isEmpty
-] ,AuthController.login_user);
+    body("password").not().isEmpty()
+], AuthController.login_user);
+api.post('/logout', middleware.userprotectUrl, AuthController.logout);
 
 //Usuarios
 api.get('/user',middleware.userprotectUrl, UsersController.userlist);  
@@ -24,6 +25,8 @@ api.post('/user', middleware.userprotectUrl, [
     body("apellido").not().isEmpty(),
     body("edad").not().isEmpty(),
     body("propiedad").not().isEmpty(),
+    body("email").not().isEmpty(),
+    body("password").not().isEmpty(),
 ],UsersController.createuser);
 api.put('/user/:iduser', middleware.userprotectUrl, [
     body("iduser").not().isEmpty(),
@@ -31,6 +34,8 @@ api.put('/user/:iduser', middleware.userprotectUrl, [
     body("apellido").not().isEmpty(),
     body("edad").not().isEmpty(),
     body("propiedad").not().isEmpty(),
+    body("email").not().isEmpty(),
+    body("password").not().isEmpty(),
 ],UsersController.updateuser);
 api.delete('/user/:iduser', middleware.userprotectUrl, UsersController.deleteuser);
 

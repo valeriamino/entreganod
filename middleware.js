@@ -20,26 +20,21 @@ var middleware = {
                         message:"Token no valido"
                     });
 
-                }else{
+                } else {
 
                     req.decoded = decoded;
 
-                    Sessions.findOne({ email:req.decoded.user.email, token, active:true })
+                    
+                    Sessions.findOne({user:req.decoded.user.email, key: token, active:true })
                     .then(session => {
-
                         if(!session){
-              
                             return res.status(401).send({
                                 status: 401,
-                                message: "Usuario no enontrado",
-                        
+                                message: "Sesion no enontrada"
                             });
                         }
-                        returnres.status(200).send({
-                            status:200,
-                            message:"Informacion de usuario",
-                            data:usuarios
-                        });
+
+                        next();
                     })    
                     .catch(error => {
                       console.error(error);
@@ -48,9 +43,6 @@ var middleware = {
                         message: "Error detectado"
                       });
                     });
-
-
-                    next();
 
                 }
             });

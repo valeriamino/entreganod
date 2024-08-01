@@ -86,7 +86,38 @@ var controller = {
             });
         });
 
+    },
+
+    logout: function (req, res){
+        const token = req.headers ['x-trabnode-access-token'];
+        console.log(token);
+
+        Sessions.findOneAndDelete({user:req.decoded.user.email,key:token})
+        .then(session => {
+    
+          if (!session) {
+            return res.status(404).send({
+              status: 404,
+              message: "Token invalido"
+            });
+          }
+    
+          return res.status(200).send({
+            status: 200,
+            message: "Sesion finalizada"
+          });
+        })
+        .catch(error => {
+          console.error(error);
+          return res.status(500).send({
+            status: 500,
+            message: "Token invalido"
+          });
+        });
+
     }
+
+
 }
 
 module.exports = controller;
