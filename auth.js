@@ -5,6 +5,7 @@ require('dotenv').config();
 var jwt = require("jsonwebtoken");
 
 const {validationResult } = require('express-validator');
+const bcrypt = require('bcrypt');
 
 var Users = require('../models/users');
 var Sessions = require('../models/accesstoken');
@@ -23,60 +24,67 @@ var controller = {
         Users.findOne({email:data.email})
         .then(usuarios => {
 
-            if(data.password == usuarios.password){
+            //bcrypt
+            bcrypt.compare(data.password, usuarios.password, function(err, result) {
+                // result == true
+                if(result){
 
-                const payload = {
-                    user: usuarios
-                }
-
-                let access_token = jwt.sign(payload, process.env.KEY, {
-                    expiresIn: '3d'
-
-                });
-
-                let today = new Date().toISOString();
-
-                let update_session = {
-                    user: usuarios.email,
-                    key: access_token,
-                    creationDate: today,
-                    expirationDate: '3d',
-                    active: true
-
-                }
-
-                Sessions.findOneAndUpdate({ user:usuarios.email}, update_session, {upsert:true, new:true})
-                .then(session => {
-                    if (!session) {
-                        return res.status(401).send({
-                            status: 401,
-                            message: "Usuario no encontrado"
-                        });
+                    const payload = {
+                        user: usuarios
                     }
-
-                    return res.status(200).send({
-                        status:200,
-                        message:"Login correcto",
-                        token: access_token
+    
+                    let access_token = jwt.sign(payload, process.env.KEY, {
+                        expiresIn: '3d'
+    
                     });
-
-                })
-                .catch(error => {
-                    console.error(error);
-                    return res.status(500).send({
-                        status: 500,
-                        message: "Error detectado"
+    
+                    let today = new Date().toISOString();
+    
+                    let update_session = {
+                        user: usuarios.email,
+                        key: access_token,
+                        creationDate: today,
+                        expirationDate: '3d',
+                        active: true
+    
+                    }
+    
+                    Sessions.findOneAndUpdate({ user:usuarios.email}, update_session, {upsert:true, new:true})
+                    .then(session => {
+                        if (!session) {
+                            return res.status(401).send({
+                                status: 401,
+                                message: "Usuario no encontrado"
+                            });
+                        }
+    
+                        return res.status(200).send({
+                            status:200,
+                            message:"Login correcto",
+                            token: access_token
+                        });
+    
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        return res.status(500).send({
+                            status: 500,
+                            message: "Error detectado"
+                        });
                     });
-                });
-                
                     
+                        
+    
+                }else{
+                    return res.status(401).send({
+                        status:401,
+                        message:"Datos no validos"
+                    });
+                }
 
-            }else{
-                return res.status(401).send({
-                    status:401,
-                    message:"Datos no validos"
-                });
-            }    
+            });
+
+                
         })
         .catch(error => {
             console.error(error);
